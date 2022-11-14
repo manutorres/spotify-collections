@@ -21,7 +21,6 @@ class PyObjectId(ObjectId):
     def __modify_schema__(cls, field_schema):
         field_schema.update(type="string")
 
-
 class SongModel(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     name: str = Field(...)
@@ -39,11 +38,11 @@ class SongModel(BaseModel):
             }
         }
 
-class RecordModel(BaseModel):
+class AlbumModel(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    spotify_id: str = Field(...)
     name: str = Field(...)
-    artist: str = Field(...)
-    
+    artists: list[str] = Field(...)    
     
     class Config:
         allow_population_by_field_name = True
@@ -51,8 +50,9 @@ class RecordModel(BaseModel):
         json_encoders = {ObjectId: str}
         schema_extra = {
             "example": {
-                "name": "Tore Down House",                
-                "artist": "Scott Henderson"                
+                "name": "Tore Down House",
+                "spotify_id": "57ryIYKFaMMU1js1sT1yOb",
+                "artists": ["Scott Henderson"]
             }
         }
 
@@ -63,7 +63,7 @@ class CollectionModel(BaseModel):
     description: str = Field(...)
     type: Optional[str]
     aliases: Optional[list[str]]
-    records: Optional[list[RecordModel]]
+    albums: Optional[list[AlbumModel]]
     songs: Optional[list[SongModel]]
     
     class Config:
@@ -76,16 +76,16 @@ class CollectionModel(BaseModel):
                 "type": "genre",
                 "description": "Jazz music with prevalence of electric guitar playing",
                 "aliases": ["guitar-jazz", "jazz guitar", "jazz-guitar"],
-                "records": [
+                "albums": [
                     {
-                        "_id": "ObjectId(...)",
+                        "_id": "id",
                         "name": "Talk to Your Daughter",
                         "artist": "Robben Ford"
                     }
                 ],
                 "songs": [
                     {
-                        "_id": "ObjectId(...)",
+                        "_id": "id",
                         "name": "Bright Size Life",
                         "artist": "Pat Metheny"
                     }
