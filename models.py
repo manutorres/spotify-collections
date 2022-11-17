@@ -21,11 +21,13 @@ class PyObjectId(ObjectId):
     def __modify_schema__(cls, field_schema):
         field_schema.update(type="string")
 
+
 class SongModel(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     name: str = Field(...)
+    spotify_id: str = Field(...)
+    youtube_link: str | None = Field(...)
     artist: str = Field(...)
-    
     
     class Config:
         allow_population_by_field_name = True
@@ -33,14 +35,18 @@ class SongModel(BaseModel):
         json_encoders = {ObjectId: str}
         schema_extra = {
             "example": {
-                "name": "In your own sweet way",                
+                "name": "In your own sweet way",
+                "spotify_id": "7GKkCKds6EeOq6S7IpmhD8",
+                "youtube_link": "https://www.youtube.com/watch?v=VjIaYCjy8yE&ab_channel=WesMontgomery-Topic",
                 "artist": "Wes Montgomery"
             }
         }
 
+
 class AlbumModel(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     spotify_id: str = Field(...)
+    youtube_link: str | None = Field(...)
     name: str = Field(...)
     artists: list[str] = Field(...)    
     
@@ -52,6 +58,7 @@ class AlbumModel(BaseModel):
             "example": {
                 "name": "Tore Down House",
                 "spotify_id": "57ryIYKFaMMU1js1sT1yOb",
+                "youtube_link": "https://www.youtube.com/watch?v=sS2B7QGOAv4&list=PLg8JTxx6UqxrZWiDcPJFx0vJIoLPO_aNI",
                 "artists": ["Scott Henderson"]
             }
         }

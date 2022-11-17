@@ -33,7 +33,19 @@ def get_album(album_id: str):
     artists = [artist.name for artist in full_album.artists]
     album = AlbumModel(
         spotify_id=album_id,
+        youtube_link=None,
         name=full_album.name,
         artists=artists
     )
     return album
+
+
+def play_album(album_id: str) -> bool:
+    try:
+        album_uri = tk.to_uri('album', album_id)
+        spotify.playback_start_context(album_uri)
+        return True
+    except Exception as e:
+        print(e)
+        print("Album could not be played in Spotify")
+        return False
