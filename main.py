@@ -63,7 +63,7 @@ def get_collections():
 """
 Lists collections that match the given name
 """
-@app.get("/collections/match_name/{name}", response_description="Matching collections", response_model=List[CollectionModel])
+@app.get("/collections/search/{name}", response_description="Matching collections", response_model=List[CollectionModel])
 def get_collections_by_name(name: str):
     collections = db.get_collections_by_name(name)
     if collections:
@@ -128,7 +128,7 @@ def add_album_to_collection(collection_id: str, spotify_id: str):
         link = youtube.get_album_link(album.name)
         album.youtube_link = link if link else None
         album = jsonable_encoder(album)
-        _ = db.create_album(album)
+        db.create_album(album)
    
     modified_count = db.add_album_to_collection(collection_id, album)
     if modified_count:
@@ -137,8 +137,7 @@ def add_album_to_collection(collection_id: str, spotify_id: str):
         raise HTTPException(status_code=400, detail=f"Album {spotify_id} already in the collection")
 
 
-"""
-Initializes the web server if program run directly
-"""
+
+# Initializes the web server if program run directly
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
