@@ -7,7 +7,7 @@ from fastapi import FastAPI, Body, HTTPException, status
 from fastapi.responses import Response, JSONResponse
 from fastapi.encoders import jsonable_encoder
 from typing import Optional, List
-from models import SongModel, AlbumModel, CollectionModel
+from models import *
 
 
 app = FastAPI(title="SpotifyCollections App")
@@ -116,6 +116,22 @@ def play_album(id: str):
     raise HTTPException(status_code=404, detail=f"Album '{id}' could not be played")
 
 
+
+@app.put("/albums/{id}/update", response_description="Update album {id}", response_model=AlbumModel)
+def update_album(id: str, album: UpdateAlbumModel):   
+    album_data = {k: v for k, v in album.dict().items() if v is not None}
+    if len(album_data) >= 1:
+        updated_album = db.update_album(id, album_data)
+        if updated_album is not None:
+            return JSONResponse(status_code=status.HTTP_200_OK, content=updated_album)
+        
+        raise HTTPException(status_code=400, detail=f"Album {id} was not found")
+
+    # TODO Return existing album instead of exception
+    raise HTTPException(status_code=400, detail=f"No data to update album {id} was given")
+
+
+
 """
 Adds album with the given spotify_id to the specified collection
 The album is also stored in database if not already present
@@ -133,8 +149,8 @@ def add_album_to_collection(collection_id: str, spotify_id: str):
     modified_count = db.add_album_to_collection(collection_id, album)
     if modified_count:
         return JSONResponse(status_code=status.HTTP_200_OK, content=f"Album {spotify_id} added to the collection")
-    else:
-        raise HTTPException(status_code=400, detail=f"Album {spotify_id} already in the collection")
+    
+    raise HTTPException(status_code=400, detail=f"Album {spotify_id} already in the collection")
 
 
 

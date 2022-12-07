@@ -64,6 +64,23 @@ class AlbumModel(BaseModel):
         }
 
 
+class UpdateAlbumModel(BaseModel):
+    spotify_id: Optional[str]
+    youtube_link: Optional[str]
+    name: Optional[str]
+    artists: Optional[list[str]]
+    
+    class Config:        
+        schema_extra = {
+            "example": {
+                "name": "Tore Down House",
+                "spotify_id": "57ryIYKFaMMU1js1sT1yOb",
+                "youtube_link": "https://www.youtube.com/watch?v=sS2B7QGOAv4&list=PLg8JTxx6UqxrZWiDcPJFx0vJIoLPO_aNI",
+                "artists": ["Scott Henderson"]
+            }
+        }
+
+
 class CollectionModel(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     name: str = Field(...)

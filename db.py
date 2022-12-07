@@ -84,6 +84,18 @@ def search_album_by_spotify_id(spotify_id):
     return album
 
 
+def update_album(id: str, album_data: dict):
+    result = db.albums.update_one(
+        {"_id": id}, 
+        {"$set": album_data}
+    )
+    if not result or result.matched_count == 0:
+        return None
+    
+    updated_album = get_album_by_id(id)
+    return updated_album
+    
+
 """
 Adds an album to an existing music collection
 MongoDB's "addToSet" ensures that there are no duplicate items using exact match comparison
