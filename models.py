@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 from typing import Optional, List, Literal
 from bson import ObjectId
 
@@ -118,3 +118,13 @@ class CollectionModel(BaseModel):
         }
 
 
+
+class YoutubeLinkModel(BaseModel):
+    youtube_link: HttpUrl
+    
+
+    # class Config:        
+    #     schema_extra = {
+    #         "example": {                
+    #             "youtube_link": "https://www.youtube.com/watch?v=L_XJ_s5IsQc",
+    #         }

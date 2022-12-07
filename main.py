@@ -13,10 +13,6 @@ from models import *
 app = FastAPI(title="SpotifyCollections App")
 
 
-@app.get("/")
-def root():
-    return {"message": "SpotifyCollections App!"}
-
 
 """
 Creates a new collection in database from user input data and returns it
@@ -26,6 +22,7 @@ def create_collection(collection: CollectionModel = Body(...)):
     collection = jsonable_encoder(collection)
     new_collection = db.create_collection(collection)
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=new_collection)
+
 
 
 """
@@ -41,6 +38,7 @@ def create_album(album: AlbumModel = Body(...)):
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=new_album)
 
 
+
 """
 Creates a new song in database from user input data and returns it
 """
@@ -51,6 +49,13 @@ def create_song(song: SongModel = Body(...)):
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=new_song)
 
 
+
+@app.get("/")
+def root():
+    return {"message": "SpotifyCollections App!"}
+
+
+
 """
 Lists all collections from database
 """
@@ -58,6 +63,7 @@ Lists all collections from database
 def get_collections():
     collections = db.get_collections()
     return JSONResponse(content=collections)
+
 
 
 """
@@ -72,6 +78,7 @@ def get_collections_by_name(name: str):
         raise HTTPException(status_code=404, detail=f"Collections matching '{name}' not found")
 
 
+
 """
 Lists all albums from database
 """
@@ -81,22 +88,18 @@ def get_albums():
     return JSONResponse(content=albums)
 
 
-"""
-Lists all Spotify albums present in the user's library
-"""
-@app.get("/spotify/saved_albums")
-def get_spotify_saved_albums():
-    albums = spotify.get_saved_albums()
-    return JSONResponse(content=albums)
-
 
 """
-Lists albums that match the given name from Spotify catalogue
+Returns the album from database with the given ID
 """
-@app.get("/spotify/search_albums/{name}")
-def get_spotify_search_albums(name: str):
-    albums = spotify.get_search_albums(name)
-    return JSONResponse(content=albums)
+@app.get("/albums/{id}", response_description="Get album with specified ID", response_model=AlbumModel)
+def get_album(id: str):
+    album = db.get_album_by_id(id)
+    if album is not None:
+        return JSONResponse(status_code=status.HTTP_200_OK, content=album)
+    
+    raise HTTPException(status_code=404, detail=f"No album with ID '{id}' was found")
+
 
 
 """
@@ -117,11 +120,34 @@ def play_album(id: str):
 
 
 
-@app.put("/albums/{id}/update", response_description="Update album {id}", response_model=AlbumModel)
-def update_album(id: str, album: UpdateAlbumModel):   
-    album_data = {k: v for k, v in album.dict().items() if v is not None}
-    if len(album_data) >= 1:
-        updated_album = db.update_album(id, album_data)
+"""
+Lists all Spotify albums present in the user's library
+"""
+@app.get("/spotify/saved_albums")
+def get_spotify_saved_albums():
+    albums = spotify.get_saved_albums()
+    return JSONResponse(content=albums)
+
+
+
+"""
+Lists albums that match the given name from Spotify catalogue
+"""
+@app.get("/spotify/search_albums/{name}")
+def get_spotify_search_albums(name: str):
+    albums = spotify.get_search_albums(name)
+    return JSONResponse(content=albums)
+
+
+
+"""
+Updates the Youtube link considered to play the given album
+"""
+@app.put("/albums/{id}/update_yt", response_description="Update Youtube link for album {id}", response_model=AlbumModel)
+def update_album(id: str, youtube_link_model: YoutubeLinkModel):
+    youtube_link = youtube_link_model.youtube_link
+    if youtube_link is not None:
+        updated_album = db.update_album_youtube_link(id, youtube_link)
         if updated_album is not None:
             return JSONResponse(status_code=status.HTTP_200_OK, content=updated_album)
         
@@ -138,7 +164,7 @@ The album is also stored in database if not already present
 """
 @app.put("/collections/{collection_id}/add_album/{spotify_id}", response_description="Add album to collection", response_model=str)
 def add_album_to_collection(collection_id: str, spotify_id: str):
-    album = db.search_album_by_spotify_id(spotify_id)
+    album = db.get_album_by_spotify_id(spotify_id)
     if not album:
         album = spotify.get_album(spotify_id)
         link = youtube.get_album_link(album.name)

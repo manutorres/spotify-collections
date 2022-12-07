@@ -15,44 +15,7 @@ db = client.spotify_collections
 print("Database connection established.")
 
 
-def get_collections():
-    collections = list(db.collections.find())
-    return collections
-
-
-def get_collection_by_id(id: str):
-    try:
-        collection = db.collections.find_one({"_id": id})
-        return collection
-    except InvalidId as _:
-        return None
-
-
-def get_collections_by_name(name: str):
-    name = "".join(char if char not in [" ", "-", "_", "//"] else "." for char in name)
-    query = { "name": { "$regex": name, "$options": "i" }}
-    projection = { "name": 1 }
-    # print(query, projection)
-    collections = db.collections.find(query, projection)
-    return list(collections)
-
-
-def get_music_by_collection_name(name: str):
-    pass
-
-
-def get_album_by_id(id: str):
-    try:
-        album = db.albums.find_one({"_id": id})
-        return album
-    except InvalidId as _:
-        return None
-
-
-def get_albums():
-    albums = list(db.albums.find())
-    return albums
-
+# COLLECTIONS #####################################################################################
 
 """
 Creates new music collections in database
@@ -64,6 +27,34 @@ def create_collection(collection: dict):
     return new_collection
 
 
+def get_collections():
+    collections = list(db.collections.find())
+    return collections
+
+
+def get_collections_by_name(name: str):
+    name = "".join(char if char not in [" ", "-", "_", "//"] else "." for char in name)
+    query = { "name": { "$regex": name, "$options": "i" }}
+    projection = { "name": 1 }
+    # print(query, projection)
+    collections = db.collections.find(query, projection)
+    return list(collections)
+
+
+def get_collection_by_id(id: str):
+    try:
+        collection = db.collections.find_one({"_id": id})
+        return collection
+    except InvalidId as _:
+        return None
+
+
+def get_music_by_collection_name(name: str):
+    pass
+
+
+# ALBUMS ##########################################################################################
+
 """
 Creates new album in database
 Returns the inserted album (not only the id)
@@ -74,27 +65,35 @@ def create_album(album: dict):
     return new_album
 
 
-def create_song(song: dict):
-    new_song = db.songs.insert_one(song).inserted_id
-    return new_song
+def get_albums():
+    albums = list(db.albums.find())
+    return albums
 
 
-def search_album_by_spotify_id(spotify_id):
+def get_album_by_id(id: str):
+    try:
+        album = db.albums.find_one({"_id": id})        
+        return album
+    except InvalidId as _:
+        return None
+
+
+def get_album_by_spotify_id(spotify_id):
     album = db.albums.find_one({"spotify_id": spotify_id})
     return album
 
 
-def update_album(id: str, album_data: dict):
+def update_album_youtube_link(id: str, youtube_link: str):
     result = db.albums.update_one(
         {"_id": id}, 
-        {"$set": album_data}
+        {"$set": {"youtube_link": youtube_link}}
     )
     if not result or result.matched_count == 0:
         return None
     
     updated_album = get_album_by_id(id)
     return updated_album
-    
+
 
 """
 Adds an album to an existing music collection
@@ -110,3 +109,12 @@ def add_album_to_collection(collection_id: str, album: dict):
         { "$addToSet": { "albums": album } }
     )
     return update_result.modified_count
+
+
+# SONGS ###########################################################################################
+
+
+def create_song(song: dict):
+    new_song = db.songs.insert_one(song).inserted_id
+    return new_song
+
